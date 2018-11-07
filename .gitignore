@@ -2,3 +2,5 @@ app/
 service/nginx/conf/
 service/nginx/vhost/
 service/mysql/data/
+
+log/nginx/*
