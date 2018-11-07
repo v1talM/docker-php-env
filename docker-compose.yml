@@ -1,0 +1,59 @@
+version: '3'
+
+services:
+  nginx:
+    build: ./service/nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./app/:/var/www/
+      - ./service/nginx/conf/:/etc/nginx/conf.d/
+      - ./service/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./service/nginx/vhost/:/etc/nginx/vhost/
+      - ./log/nginx:/var/log/nginx
+    links:
+      - phpfpm:phpfpm
+    restart: always
+    command: nginx -g 'daemon off;'
+    depends_on:
+      - phpfpm
+    networks:
+      - app
+  phpfpm:
+    build: ./service/php
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./app/:/var/www/
+      - ./log/php/:/var/log/php-fpm:rw
+    links:
+      - mysql
+    restart: always
+    command: php-fpm
+    depends_on:
+      - mysql
+    networks:
+      - app
+  mysql:
+    build: ./service/mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./service/mysql/data/:/var/lib/mysql/
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+    networks:
+      - app
+  node:
+    build: ./service/node
+    volumes:
+      - ./app/:/var/www/
+    restart: always
+    command: node
+    depends_on:
+      - nginx
+    networks:
+      - app
+networks:
+  app:
+    driver: bridge
